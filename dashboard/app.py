@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 from reportlab.lib.utils import ImageReader
 
 
-READINGS_URL = "http://127.0.0.1:8000/readings"
-ALERTS_URL = "http://127.0.0.1:8000/alerts"
-ACTIVE_ALERTS_URL = "http://127.0.0.1:8000/active-alerts"
+READINGS_URL = "https://supply-chain-backend-vf0m.onrender.com/readings"
+ALERTS_URL = "https://supply-chain-backend-vf0m.onrender.com/alerts"
+ACTIVE_ALERTS_URL = "https://supply-chain-backend-vf0m.onrender.com/active-alerts"
 def create_pdf_report(shipment_id, latest, df, alerts_df):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)

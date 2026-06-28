@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 from routes_config import ROUTES
 load_dotenv()
 
-API_URL = "http://127.0.0.1:8000/readings"
-MQTT_BROKER = os.getenv("MQTT_HOST")
+API_URL = "https://supply-chain-backend-vf0m.onrender.com/readings"
+MQTT_HOST = os.getenv("MQTT_HOST")
 MQTT_PORT = int(os.getenv("MQTT_PORT", 8883))
 MQTT_USERNAME = os.getenv("MQTT_USERNAME")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
@@ -20,7 +20,7 @@ MQTT_TOPIC = os.getenv("MQTT_TOPIC", "supply_chain/readings")
 mqtt_client = mqtt.Client()
 mqtt_client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 mqtt_client.tls_set()
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+mqtt_client.connect(MQTT_HOST, MQTT_PORT, 60)
 
 print("Starting simulation for ALL routes")
 print("-" * 50)

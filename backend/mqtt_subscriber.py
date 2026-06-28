@@ -12,6 +12,7 @@ MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "supply_chain/readings")
 BACKEND_URL = "https://supply-chain-backend-vf0m.onrender.com/readings"
 
+client = mqtt.Client()
 client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 client.tls_set()
 client.connect(MQTT_HOST, MQTT_PORT, 60)
@@ -37,14 +38,12 @@ def on_message(client, userdata, msg):
         print("MQTT processing error:", e)
 
 
-client = mqtt.Client()
-client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
-client.tls_set()
+
 
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect(MQTT_BROKER, MQTT_PORT, 60)
+client.connect(MQTT_HOST, MQTT_PORT, 60)
 
 print("MQTT Subscriber started...")
 client.loop_forever()
