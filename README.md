@@ -10,6 +10,7 @@ The system simulates IoT sensor data, transfers it via MQTT to a cloud backend, 
 
 ## System Architecture
 
+![System Architecture](images/architecture.png)
 ```
 +-----------------------+
 |  Sensor Simulator     |
