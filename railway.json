@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "pip install -r requirements-worker.txt"
+  },
+  "deploy": {
+    "startCommand": "python backend/mqtt_subscriber.py"
+  }
+}
