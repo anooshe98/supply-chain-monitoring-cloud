@@ -1,13 +1,20 @@
 import json
 import requests
 import paho.mqtt.client as mqtt
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
-MQTT_TOPIC = "supply_chain/readings"
+MQTT_HOST = os.getenv("MQTT_HOST")
+MQTT_PORT = int(os.getenv("MQTT_PORT", 8883))
+MQTT_USERNAME = os.getenv("MQTT_USERNAME")
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
+MQTT_TOPIC = os.getenv("MQTT_TOPIC", "supply_chain/readings")
+BACKEND_URL = "https://supply-chain-backend-vf0m.onrender.com/readings"
 
-BACKEND_URL = "http://127.0.0.1:8000/readings"
-
+client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+client.tls_set()
+client.connect(MQTT_HOST, MQTT_PORT, 60)
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT Broker with result code:", rc)
@@ -31,6 +38,9 @@ def on_message(client, userdata, msg):
 
 
 client = mqtt.Client()
+client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+client.tls_set()
+
 client.on_connect = on_connect
 client.on_message = on_message
 
