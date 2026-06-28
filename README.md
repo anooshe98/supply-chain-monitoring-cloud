@@ -2,9 +2,44 @@
 
 ## Overview
 
-This project is an Industry 4.0 application for monitoring environmental conditions during product transportation.
+The Smart Supply Chain Environmental Monitoring System is an Industry 4.0 application designed to monitor environmental conditions during product transportation.
 
-The system simulates IoT sensor data, analyses shipment risks in real time, generates alerts, sends automatic email notifications, and provides an interactive monitoring dashboard.
+The system simulates IoT sensor data, transfers it via MQTT to a cloud backend, stores it in a database, analyzes shipment risks in real time, generates alerts, sends automatic email notifications, and provides an interactive dashboard for visualization and reporting.
+
+---
+
+## System Architecture
+
+```
++-----------------------+
+|  Sensor Simulator     |
++-----------------------+
+            |
+            | MQTT
+            v
++-----------------------+
+|     HiveMQ Cloud      |
++-----------------------+
+            |
+            v
++-----------------------+
+| MQTT Subscriber       |
++-----------------------+
+            |
+            | REST API
+            v
++-----------------------+
+| FastAPI Backend       |
+| (Render Cloud)        |
++-----------------------+
+            |
+      SQLite Database
+            |
+            v
++-----------------------+
+| Streamlit Dashboard   |
++-----------------------+
+```
 
 ---
 
@@ -12,61 +47,98 @@ The system simulates IoT sensor data, analyses shipment risks in real time, gene
 
 - Real-time shipment monitoring
 - IoT sensor simulation
+- MQTT communication
 - GPS route tracking
 - Environmental monitoring
-- AI-based risk assessment
+- Risk assessment
 - Automatic alert generation
 - Email notifications
 - PDF report generation
 - CSV export
-- Analytics dashboard
+- Interactive analytics dashboard
 - Multi-shipment support
+- Cloud backend deployment
 
 ---
 
 ## Technologies
 
-Backend
-- FastAPI
-- SQLite
-- SQLAlchemy
+### Backend
 
-Frontend
+- FastAPI
+- SQLAlchemy
+- SQLite
+- Uvicorn
+
+### Frontend
+
 - Streamlit
 - Plotly
-
-Python Libraries
 - Pandas
 - Matplotlib
+
+### IoT
+
+- MQTT
+- HiveMQ Cloud
+- Paho MQTT
+
+### Cloud
+
+- Render
+- GitHub
+
+### Python Libraries
+
+- Requests
 - ReportLab
+- Python-dotenv
 
 ---
 
 ## Project Structure
 
+```
 backend/
 dashboard/
 sensor_simulator/
 reports/
-database/
+requirements.txt
+requirements-worker.txt
+README.md
+```
 
 ---
 
 ## How to Run
 
-### Backend
+### 1. Start Backend (Cloud)
 
-```bash
-python -m uvicorn backend.main:app --reload
+Backend is deployed on Render.
+
+```
+https://supply-chain-backend-vf0m.onrender.com
 ```
 
-### Sensor Simulator
+---
+
+### 2. Start MQTT Subscriber
+
+```bash
+python backend/mqtt_subscriber.py
+```
+
+---
+
+### 3. Start Sensor Simulator
 
 ```bash
 python sensor_simulator/simulator.py
 ```
 
-### Dashboard
+---
+
+### 4. Start Dashboard
 
 ```bash
 python -m streamlit run dashboard/app.py
@@ -74,22 +146,37 @@ python -m streamlit run dashboard/app.py
 
 ---
 
-## AI Risk Assessment
+## Cloud Deployment
 
-The system continuously analyses sensor data such as:
+The backend is deployed on **Render Cloud**.
+
+The system architecture consists of:
+
+- FastAPI Backend (Render)
+- HiveMQ Cloud MQTT Broker
+- MQTT Subscriber
+- SQLite Database
+- Streamlit Dashboard
+- GitHub Repository
+
+Sensor data is transmitted via MQTT, processed by the backend, stored in the database, and visualized in real time.
+
+---
+
+## AI-Based Risk Assessment
+
+The system continuously evaluates sensor measurements including:
 
 - Temperature
 - Humidity
 - Shock
-- Light
+- Light intensity
 
-Based on these values, an AI-inspired rule-based model calculates a Risk Score and predicts shipment conditions.
+Based on configurable threshold values, a rule-based risk score is calculated and shipments are classified as:
 
----
-
-## Automatic Notifications
-
-The system automatically sends email notifications when WARNING or CRITICAL alerts are detected.
+- Normal
+- Warning
+- Critical
 
 ---
 
@@ -99,12 +186,25 @@ The dashboard supports:
 
 - PDF reports
 - CSV export
+- Shipment history
 - KPI summaries
 - Trend analysis
 
 ---
 
-## Author
+## Future Improvements
 
-Anousheh Naderi
-Parnia Halajani
+- Docker deployment
+- Kubernetes support
+- Machine Learning anomaly detection
+- Real IoT sensor integration
+- User authentication
+- Mobile application
+- Interactive live maps
+
+---
+
+## Authors
+
+- Anousheh Naderi
+- Parnia Halajani
