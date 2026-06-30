@@ -207,21 +207,21 @@ page = st.sidebar.selectbox(
    # st_autorefresh(interval=5000, key="dashboard_refresh")
 
 try:
-    readings_response = requests.get(READINGS_URL, timeout=5)
-    alerts_response = requests.get(ALERTS_URL, timeout=5)
-    active_alerts_response = requests.get(ACTIVE_ALERTS_URL, timeout=5)
+    readings_response = requests.get(READINGS_URL, timeout=60)
+    alerts_response = requests.get(ALERTS_URL, timeout=60)
+    active_alerts_response = requests.get(ACTIVE_ALERTS_URL, timeout=60)
+
+    readings_response.raise_for_status()
+    alerts_response.raise_for_status()
+    active_alerts_response.raise_for_status()
 
     readings = readings_response.json()
     alerts = alerts_response.json()
     active_alerts = active_alerts_response.json()
 
 except Exception as e:
-    st.warning("Backend antwortet gerade nicht. Letzte Aktualisierung fehlgeschlagen.")
+    st.error(f"Backend error: {e}")
     st.stop()
-
-readings = readings_response.json()
-alerts = alerts_response.json()
-active_alerts = active_alerts_response.json()
 df = pd.DataFrame(readings)
 alerts_df = pd.DataFrame(alerts)
 if df.empty:
@@ -233,6 +233,18 @@ df["lat"] = pd.to_numeric(df["lat"], errors="coerce")
 df["lon"] = pd.to_numeric(df["lon"], errors="coerce")
 df = df.dropna(subset=["lat", "lon"])
 if page == "Analytics":
+
+    if df.empty:
+        st.warning("Noch keine Sensordaten für Analytics vorhanden.")
+        st.stop()
+
+    required_columns = ["temperature", "humidity", "risk_score"]
+
+    missing_columns = [col for col in required_columns if col not in df.columns]
+
+    if missing_columns:
+        st.warning(f"Fehlende Spalten im Datensatz: {missing_columns}")
+        st.stop()
 
     st.header("📊 Analytics Dashboard")
 
@@ -337,11 +349,17 @@ selected_shipment = st.selectbox(
     key="selected_shipment"
 )
 
-current_route = [
+matching_routes = [
     route_name
     for route_name, route_data in ROUTES.items()
     if route_data["shipment_id"] == selected_shipment
-][0]
+]
+
+if not matching_routes:
+    st.warning("Keine Route für diese Sendung gefunden.")
+    st.stop()
+
+current_route = matching_routes[0]
 
 route_stations = ROUTES[current_route]["stations"]
 route_order = [station["location"] for station in route_stations]
@@ -495,58 +513,67 @@ else:
             })
 
     route_df = pd.DataFrame(route_status)
-    st.dataframe(route_df, use_container_width=True)
+    st.dataframe(route_df, width="stretch")
 
     st.subheader("📍 GPS Route Tracking")
 
     current_route = latest["route_name"]
-
     route_stations = ROUTES[current_route]["stations"]
 
     gps_df = pd.DataFrame([
-    {
-        "station": station["location"],
-        "lat": station["lat"],
-        "lon": station["lon"]
-    }
-    for station in route_stations
-])
+        {
+            "location": station["location"],
+            "lat": station["lat"],
+            "lon": station["lon"]
+        }
+        for station in route_stations
+    ])
 
-    
+    gps_df["lat"] = pd.to_numeric(gps_df["lat"], errors="coerce")
+    gps_df["lon"] = pd.to_numeric(gps_df["lon"], errors="coerce")
+    gps_df = gps_df.dropna(subset=["lat", "lon"])
 
     fig = px.scatter_mapbox(
-    gps_df,
-    lat="lat",
-    lon="lon",
-    hover_name="station",
-    zoom=5,
-    height=500
-)
-
-    fig.add_scattermapbox(
-    lat=gps_df["lat"],
-    lon=gps_df["lon"],
-    mode="lines+markers",
-    name="Planned Route"
-)
-    
-    latest_position = map_df.sort_values("id").iloc[-1]
-    st.write(latest_position[["shipment_id", "location", "lat", "lon"]])
-
-    fig.add_scattermapbox(
-        lat=[latest_position["lat"]],
-        lon=[latest_position["lon"]],
-        mode="markers",
-        marker=dict(size=18),
-        text=[f"Current Position: {latest_position['location']}"],
-        name="Current Truck Position"
+        gps_df,
+        lat="lat",
+        lon="lon",
+        hover_name="location",
+        zoom=5,
+        height=500
     )
 
-    fig.update_layout(
-         mapbox_style="open-street-map"
-)
+    fig.add_scattermapbox(
+        lat=gps_df["lat"],
+        lon=gps_df["lon"],
+        mode="lines+markers",
+        name="Planned Route"
+    )
 
-    st.plotly_chart(fig, use_container_width=True)
+    shipment_map_df = df[df["shipment_id"].astype(str) == str(selected_shipment)].copy()
+
+    shipment_map_df["lat"] = pd.to_numeric(shipment_map_df["lat"], errors="coerce")
+    shipment_map_df["lon"] = pd.to_numeric(shipment_map_df["lon"], errors="coerce")
+    shipment_map_df = shipment_map_df.dropna(subset=["lat", "lon"])
+
+    if not shipment_map_df.empty:
+        latest_position = shipment_map_df.sort_values("id").iloc[-1]
+
+        fig.add_scattermapbox(
+            lat=[latest_position["lat"]],
+            lon=[latest_position["lon"]],
+            mode="markers",
+            marker=dict(size=18),
+            text=[f"Current Position: {latest_position['location']}"],
+            name="Current Truck Position"
+        )
+    else:
+        st.info("Geplante Route wird angezeigt. Aktuelle GPS-Position ist noch nicht verfügbar.")
+    fig.update_layout(
+        mapbox_style="open-street-map",
+        margin=dict(l=0, r=0, t=0, b=0)
+    )
+
+    st.plotly_chart(fig, width="stretch")
 
     st.divider()
 

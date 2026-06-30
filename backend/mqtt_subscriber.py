@@ -30,7 +30,7 @@ def on_message(client, userdata, msg):
 
         print("MQTT received:", data)
 
-        response = requests.post(BACKEND_URL, json=data)
+        response = requests.post(BACKEND_URL, json=data, timeout=60)
 
         print("Forwarded to backend:", response.status_code)
 
