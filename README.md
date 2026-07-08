@@ -2,210 +2,352 @@
 
 ## Overview
 
-The Smart Supply Chain Environmental Monitoring System is an Industry 4.0 application designed to monitor environmental conditions during product transportation.
+The **Smart Supply Chain Environmental Monitoring System** is a hybrid cloud-based Industry 4.0 demonstrator developed for monitoring environmental conditions throughout a supply chain.
 
-The system simulates IoT sensor data, transfers it via MQTT to a cloud backend, stores it in a database, analyzes shipment risks in real time, generates alerts, sends automatic email notifications, and provides an interactive dashboard for visualization and reporting.
+The system continuously collects environmental sensor data, processes it in the cloud, evaluates shipment risks, stores historical information in a cloud database, and visualizes the results through an interactive web dashboard.
+
+The project demonstrates the integration of IoT communication, cloud computing, data analytics, GPS tracking, and AI-inspired risk assessment.
 
 ---
 
-## System Architecture
+# Features
 
-![System Architecture](images/architecture.png)
+## Real-Time Monitoring
+
+- Live shipment monitoring
+- Current shipment status
+- GPS location tracking
+- ETA calculation
+- Route progress visualization
+- Live environmental sensor values
+
+---
+
+## Environmental Parameters
+
+The system monitors:
+
+- Temperature
+- Humidity
+- Light intensity
+- Shock / Vibration
+- GPS Position
+
+---
+
+## AI Risk Assessment
+
+The dashboard automatically evaluates shipment quality by calculating a dynamic Risk Score.
+
+Possible outputs include:
+
+- Shipment conditions stable
+- Medium future risk detected
+- High probability of shipment failure
+- Recommended actions
+
+---
+
+## Alert Management
+
+Automatic alert generation for:
+
+- Temperature Risk
+- Shock Risk
+
+Each alert contains:
+
+- Severity
+- Timestamp
+- Shipment ID
+- Location
+- AI recommendation
+
+---
+
+## Analytics Dashboard
+
+Interactive analytics include:
+
+- Temperature Trend
+- Humidity Trend
+- Light Exposure Trend
+- Shock Trend
+- Risk Score Trend
+- Alert Distribution
+- KPI Overview
+- Shipment Statistics
+
+---
+
+## GPS Route Tracking
+
+The dashboard visualizes:
+
+- Planned route
+- Current truck position
+- Route stations
+- Route progress
+
+---
+
+## Reports
+
+The application supports:
+
+- CSV Export
+- PDF Report Generation
+
+Generated reports contain:
+
+- Shipment information
+- Environmental statistics
+- Risk evaluation
+- Alert summary
+
+---
+
+# System Architecture
+
 ```
-+-----------------------+
-|  Sensor Simulator     |
-+-----------------------+
-            |
-            | MQTT
-            v
-+-----------------------+
-|     HiveMQ Cloud      |
-+-----------------------+
-            |
-            v
-+-----------------------+
-| MQTT Subscriber       |
-+-----------------------+
-            |
-            | REST API
-            v
-+-----------------------+
-| FastAPI Backend       |
-| (Render Cloud)        |
-+-----------------------+
-            |
-      SQLite Database
-            |
-            v
-+-----------------------+
-| Streamlit Dashboard   |
-+-----------------------+
+Sensor Simulator
+        │
+        ▼
+ HiveMQ Cloud MQTT Broker
+        │
+        ▼
+ MQTT Subscriber
+        │
+        ▼
+ FastAPI Backend
+        │
+        ▼
+ Neon PostgreSQL Database
+        │
+        ▼
+ Streamlit Dashboard
 ```
 
 ---
 
-## Features
+# Technologies
 
-- Real-time shipment monitoring
-- IoT sensor simulation
-- MQTT communication
-- GPS route tracking
-- Environmental monitoring
-- Risk assessment
-- Automatic alert generation
-- Email notifications
-- PDF report generation
-- CSV export
-- Interactive analytics dashboard
-- Multi-shipment support
-- Cloud backend deployment
-
----
-
-## Technologies
-
-### Backend
-
-- FastAPI
-- SQLAlchemy
-- SQLite
-- Uvicorn
-
-### Frontend
-
-- Streamlit
-- Plotly
-- Pandas
-- Matplotlib
-
-### IoT
-
-- MQTT
-- HiveMQ Cloud
-- Paho MQTT
-
-### Cloud
-
-- Render
-- GitHub
-
-### Python Libraries
-
-- Requests
-- ReportLab
-- Python-dotenv
+| Technology | Purpose |
+|------------|---------|
+| Python | Main programming language |
+| FastAPI | REST Backend |
+| Streamlit | Dashboard |
+| HiveMQ Cloud | MQTT Broker |
+| Paho MQTT | MQTT Communication |
+| Neon PostgreSQL | Cloud Database |
+| SQLAlchemy | ORM |
+| Render | Cloud Deployment |
+| Plotly | Interactive Charts |
+| Pandas | Data Processing |
+| ReportLab | PDF Generation |
+| Git & GitHub | Version Control |
 
 ---
 
-## Project Structure
+# Project Structure
 
 ```
 backend/
+│
+├── main.py
+├── database.py
+├── models.py
+├── mqtt_subscriber.py
+├── analytics.py
+└── notifications.py
+
 dashboard/
+│
+└── app.py
+
 sensor_simulator/
+│
+├── simulator.py
+└── routes_config.py
+
 reports/
-requirements.txt
-requirements-worker.txt
+│
+├── PDF Reports
+└── CSV Exports
+
+images/
+
 README.md
+requirements.txt
 ```
 
 ---
 
-## How to Run
+# Dashboard Pages
 
-### 1. Start Backend (Cloud)
+## Monitoring
 
-Backend is deployed on Render.
+Displays:
 
-```
-https://supply-chain-backend-vf0m.onrender.com
-```
+- Live Shipment Status
+- Route Progress
+- GPS Tracking
+- AI Risk Assessment
+- Active Alerts
 
 ---
 
-### 2. Start MQTT Subscriber
+## Analytics
+
+Displays:
+
+- KPI Cards
+- Temperature Analysis
+- Humidity Analysis
+- Light Analysis
+- Shock Analysis
+- Risk Development
+- Alert Statistics
+
+---
+
+## Notifications
+
+Displays:
+
+- Alert History
+- Shipment Filter
+- Severity Levels
+- Download Alert History
+
+---
+
+## Reports
+
+Supports:
+
+- Download Sensor Data as CSV
+- Generate PDF Report
+
+---
+
+# Cloud Infrastructure
+
+The project uses a hybrid cloud architecture.
+
+## HiveMQ Cloud
+
+Responsible for:
+
+- MQTT communication
+- Sensor data transmission
+
+---
+
+## FastAPI Backend (Render)
+
+Responsible for:
+
+- Receiving MQTT messages
+- Risk calculation
+- Alert generation
+- REST API
+
+---
+
+## Neon PostgreSQL
+
+Responsible for:
+
+- Sensor readings
+- Alert history
+- Shipment data
+
+---
+
+## Streamlit Dashboard
+
+Responsible for:
+
+- Visualization
+- Analytics
+- Monitoring
+- Reporting
+
+---
+
+# Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/anooshe98/supply-chain-monitoring-cloud.git
+```
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Start MQTT Subscriber
 
 ```bash
 python backend/mqtt_subscriber.py
 ```
 
----
-
-### 3. Start Sensor Simulator
+Start Sensor Simulator
 
 ```bash
 python sensor_simulator/simulator.py
 ```
 
----
-
-### 4. Start Dashboard
+Start Dashboard
 
 ```bash
-python -m streamlit run dashboard/app.py
+streamlit run dashboard/app.py
 ```
 
 ---
 
-## Cloud Deployment
+# Future Improvements
 
-The backend is deployed on **Render Cloud**.
+Possible future extensions:
 
-The system architecture consists of:
-
-- FastAPI Backend (Render)
-- HiveMQ Cloud MQTT Broker
-- MQTT Subscriber
-- SQLite Database
-- Streamlit Dashboard
-- GitHub Repository
-
-Sensor data is transmitted via MQTT, processed by the backend, stored in the database, and visualized in real time.
-
----
-
-## AI-Based Risk Assessment
-
-The system continuously evaluates sensor measurements including:
-
-- Temperature
-- Humidity
-- Shock
-- Light intensity
-
-Based on configurable threshold values, a rule-based risk score is calculated and shipments are classified as:
-
-- Normal
-- Warning
-- Critical
-
----
-
-## Reporting
-
-The dashboard supports:
-
-- PDF reports
-- CSV export
-- Shipment history
-- KPI summaries
-- Trend analysis
-
----
-
-## Future Improvements
-
+- ESP32 hardware integration
+- Real IoT sensors
 - Docker deployment
-- Kubernetes support
-- Machine Learning anomaly detection
-- Real IoT sensor integration
-- User authentication
+- Kubernetes
+- Machine Learning prediction
 - Mobile application
-- Interactive live maps
+- Email and SMS notifications
 
 ---
 
-## Authors
+# Authors
 
-- Anousheh Naderi
-- Parnia Halajani
+
+**Anooshe Naderi Khorasgani**
+
+**Parnia Halajani**
+
+
+---
+
+# Course
+
+**Smart Systems I**
+
+Hochschule Düsseldorf
+
+Summer Semester 2026
+
+Supervisor:
+
+**Prof. Dr.-Ing. Michael Protogerakis**
+
+---
+
+# License
+
+This project was developed for academic purposes as part of the Smart Systems I course at Hochschule Düsseldorf.
