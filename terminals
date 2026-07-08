@@ -12,5 +12,6 @@ python sensor_simulator/simulator.py
 cd C:\Users\Anoos\OneDrive\Desktop\supply_chain_monitoring_cloud
 python -m streamlit run dashboard/app.py
 
+
 # Terminal 1 - Backend
 python -m uvicorn backend.main:app --reload

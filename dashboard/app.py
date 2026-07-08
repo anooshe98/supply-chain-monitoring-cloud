@@ -1,3 +1,13 @@
+"""
+Streamlit Dashboard
+
+Features:
+- Live shipment monitoring
+- GPS route tracking
+- Analytics
+- Notification Center
+- AI Risk Assessment
+"""
 import streamlit as st
 import pandas as pd
 import requests
@@ -11,10 +21,105 @@ import os
 import matplotlib.pyplot as plt
 from reportlab.lib.utils import ImageReader
 
+st.set_page_config(
+    page_title="Smart Supply Chain Monitoring",
+    page_icon="🚚",
+    layout="wide"
+)
+
+st.markdown("""
+<style>
+    .main {
+        background-color: #0E1117;
+    }
+
+    h1, h2, h3 {
+        color: #FFFFFF;
+        font-weight: 700;
+    }
+
+    .kpi-card {
+        background-color: #1E2230;
+        padding: 22px;
+        border-radius: 16px;
+        border: 1px solid #333848;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        text-align: center;
+    }
+
+    .kpi-title {
+        font-size: 16px;
+        color: #AAB2C0;
+        margin-bottom: 8px;
+    }
+
+    .kpi-value {
+        font-size: 42px;
+        font-weight: 700;
+        color: #FFFFFF;
+    }
+
+    .status-ok {
+        color: #39E58C;
+        font-weight: 700;
+    }
+
+    .status-warning {
+        color: #FFB020;
+        font-weight: 700;
+    }
+
+    .status-critical {
+        color: #FF4B4B;
+        font-weight: 700;
+    }
+
+    .info-box {
+        background-color: #132B45;
+        padding: 18px;
+        border-radius: 14px;
+        color: #2EA8FF;
+        font-size: 18px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    .success-box {
+        background-color: #123D26;
+        padding: 18px;
+        border-radius: 14px;
+        color: #39E58C;
+        font-size: 18px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    .warning-box {
+        background-color: #3D3412;
+        padding: 18px;
+        border-radius: 14px;
+        color: #FFD166;
+        font-size: 18px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    .danger-box {
+        background-color: #441E24;
+        padding: 18px;
+        border-radius: 14px;
+        color: #FF6B6B;
+        font-size: 18px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 READINGS_URL = "https://supply-chain-backend-vf0m.onrender.com/readings"
 ALERTS_URL = "https://supply-chain-backend-vf0m.onrender.com/alerts"
-ACTIVE_ALERTS_URL = "https://supply-chain-backend-vf0m.onrender.com/active-alerts"
+ACTIVE_ALERTS_URL = "https://supply-chain-backend-vf0m.onrender.com/alerts"
 def create_pdf_report(shipment_id, latest, df, alerts_df):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
@@ -207,9 +312,9 @@ page = st.sidebar.selectbox(
    # st_autorefresh(interval=5000, key="dashboard_refresh")
 
 try:
-    readings_response = requests.get(READINGS_URL, timeout=60)
-    alerts_response = requests.get(ALERTS_URL, timeout=60)
-    active_alerts_response = requests.get(ACTIVE_ALERTS_URL, timeout=60)
+    readings_response = requests.get(READINGS_URL, timeout=20)
+    alerts_response = requests.get(ALERTS_URL, timeout=20)
+    active_alerts_response = requests.get(ACTIVE_ALERTS_URL, timeout=20)
 
     readings_response.raise_for_status()
     alerts_response.raise_for_status()
@@ -220,31 +325,44 @@ try:
     active_alerts = active_alerts_response.json()
 
 except Exception as e:
-    st.error(f"Backend error: {e}")
-    st.stop()
+    st.error(f"Backend temporarily unavailable: {e}")
+
+    readings = []
+    alerts = []
+    active_alerts = []
+
+
 df = pd.DataFrame(readings)
 alerts_df = pd.DataFrame(alerts)
+active_alerts_df = pd.DataFrame(active_alerts)
+
 if df.empty:
-    st.warning("Noch keine Sensordaten vorhanden.")
-    st.stop()
+    st.warning("Noch keine Live-Sensordaten vorhanden. Demo-Daten werden verwendet.")
+
+    df = pd.DataFrame([
+        {
+            "id": 1,
+            "shipment_id": "SHIP-PHARMA-001",
+            "product": "Vaccines",
+            "route_name": "pharma_route",
+            "location": "Refrigerated Truck",
+            "lat": 51.1657,
+            "lon": 10.4515,
+            "temperature": 5.2,
+            "humidity": 52.0,
+            "shock": 0.4,
+            "light": 4.0,
+            "status": "OK",
+            "risk_score": 12
+        }
+    ])
+    
 
 df = df.dropna(subset=["lat", "lon"])
 df["lat"] = pd.to_numeric(df["lat"], errors="coerce")
 df["lon"] = pd.to_numeric(df["lon"], errors="coerce")
 df = df.dropna(subset=["lat", "lon"])
 if page == "Analytics":
-
-    if df.empty:
-        st.warning("Noch keine Sensordaten für Analytics vorhanden.")
-        st.stop()
-
-    required_columns = ["temperature", "humidity", "risk_score"]
-
-    missing_columns = [col for col in required_columns if col not in df.columns]
-
-    if missing_columns:
-        st.warning(f"Fehlende Spalten im Datensatz: {missing_columns}")
-        st.stop()
 
     st.header("📊 Analytics Dashboard")
 
@@ -349,17 +467,11 @@ selected_shipment = st.selectbox(
     key="selected_shipment"
 )
 
-matching_routes = [
+current_route = [
     route_name
     for route_name, route_data in ROUTES.items()
     if route_data["shipment_id"] == selected_shipment
-]
-
-if not matching_routes:
-    st.warning("Keine Route für diese Sendung gefunden.")
-    st.stop()
-
-current_route = matching_routes[0]
+][0]
 
 route_stations = ROUTES[current_route]["stations"]
 route_order = [station["location"] for station in route_stations]
@@ -393,10 +505,40 @@ else:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Shipment", latest["shipment_id"])
-    col2.metric("Aktueller Ort", latest["location"])
-    col3.metric("Status", latest["status"])
-    col4.metric("Risk Score", latest["risk_score"])
+    with col1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">🚚 Shipment</div>
+            <div class="kpi-value">{latest["shipment_id"]}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">📍 Current Location</div>
+            <div class="kpi-value">{latest["location"]}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        status = latest["status"]
+        status_class = "status-ok" if status == "OK" else "status-warning"
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">📦 Status</div>
+            <div class="kpi-value {status_class}">{status}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        risk = latest["risk_score"]
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">🛡 Risk Score</div>
+            <div class="kpi-value">{risk}</div>
+        </div>
+        """, unsafe_allow_html=True)
     current_location = latest["location"]
     eta_minutes = 0
 
@@ -513,67 +655,68 @@ else:
             })
 
     route_df = pd.DataFrame(route_status)
-    st.dataframe(route_df, width="stretch")
+    st.dataframe(route_df, use_container_width=True)
 
+# ======================================================
+# GPS Route Tracking
+# ======================================================
     st.subheader("📍 GPS Route Tracking")
 
     current_route = latest["route_name"]
+
     route_stations = ROUTES[current_route]["stations"]
 
     gps_df = pd.DataFrame([
-        {
-            "location": station["location"],
-            "lat": station["lat"],
-            "lon": station["lon"]
-        }
-        for station in route_stations
-    ])
+    {
+        "station": station["location"],
+        "lat": station["lat"],
+        "lon": station["lon"]
+    }
+    for station in route_stations
+])
 
-    gps_df["lat"] = pd.to_numeric(gps_df["lat"], errors="coerce")
-    gps_df["lon"] = pd.to_numeric(gps_df["lon"], errors="coerce")
-    gps_df = gps_df.dropna(subset=["lat", "lon"])
+    
 
     fig = px.scatter_mapbox(
-        gps_df,
-        lat="lat",
-        lon="lon",
-        hover_name="location",
-        zoom=5,
-        height=500
-    )
+    gps_df,
+    lat="lat",
+    lon="lon",
+    hover_name="station",
+    zoom=5,
+    height=700
+)
 
     fig.add_scattermapbox(
-        lat=gps_df["lat"],
-        lon=gps_df["lon"],
-        mode="lines+markers",
-        name="Planned Route"
+    lat=gps_df["lat"],
+    lon=gps_df["lon"],
+    mode="lines+markers",
+    line=dict(
+        color="#1E90FF",
+        width=7
+    ),
+    name="Planned Route"
+)
+    
+    latest_position = map_df.sort_values("id").iloc[-1]
+    #st.write(latest_position[["shipment_id", "location", "lat", "lon"]])
+
+    fig.add_scattermapbox(
+        lat=[latest_position["lat"]],
+        lon=[latest_position["lon"]],
+        mode="markers",
+        marker=dict(
+            size=22,
+            color="red",
+        ),
+        text=[f"Current Position: {latest_position['location']}"],
+        name="Current Truck Position"
     )
 
-    shipment_map_df = df[df["shipment_id"].astype(str) == str(selected_shipment)].copy()
-
-    shipment_map_df["lat"] = pd.to_numeric(shipment_map_df["lat"], errors="coerce")
-    shipment_map_df["lon"] = pd.to_numeric(shipment_map_df["lon"], errors="coerce")
-    shipment_map_df = shipment_map_df.dropna(subset=["lat", "lon"])
-
-    if not shipment_map_df.empty:
-        latest_position = shipment_map_df.sort_values("id").iloc[-1]
-
-        fig.add_scattermapbox(
-            lat=[latest_position["lat"]],
-            lon=[latest_position["lon"]],
-            mode="markers",
-            marker=dict(size=18),
-            text=[f"Current Position: {latest_position['location']}"],
-            name="Current Truck Position"
-        )
-    else:
-        st.info("Geplante Route wird angezeigt. Aktuelle GPS-Position ist noch nicht verfügbar.")
     fig.update_layout(
-        mapbox_style="open-street-map",
-        margin=dict(l=0, r=0, t=0, b=0)
-    )
+         mapbox_style="open-street-map"
+)
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
 
