@@ -1,0 +1,17 @@
+# Terminal 2 – MQTT Subscriber
+cd C:\Users\Anoos\OneDrive\Desktop\supply_chain_monitoring_cloud
+python backend/mqtt_subscriber.py
+
+
+# Terminal 3 – Sensor Simulator
+cd C:\Users\Anoos\OneDrive\Desktop\supply_chain_monitoring_cloud
+python sensor_simulator/simulator.py
+
+
+# Terminal 4 – Dashboard
+cd C:\Users\Anoos\OneDrive\Desktop\supply_chain_monitoring_cloud
+python -m streamlit run dashboard/app.py
+
+
+# Terminal 1 - Backend
+python -m uvicorn backend.main:app --reload
